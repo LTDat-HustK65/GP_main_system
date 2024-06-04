@@ -3,9 +3,10 @@ const Object = require('../models/objectSchema');
 
 const cobotFramework = {
     PushingObject,
-    
+
 };
 
 // const 
+
 
 module.exports = cobotFramework;
