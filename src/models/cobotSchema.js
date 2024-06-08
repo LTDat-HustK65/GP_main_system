@@ -6,7 +6,6 @@ const cobotSchema = new mongoose.Schema({
         servo1: Number,
         servo2: Number,
         servo3: Number,
-        servo4: Number,
     }
 });
 

@@ -1,13 +1,14 @@
 const Object = require('../models/objectSchema');
 const Cobot = require('../models/cobotSchema');
+const bodyParser = require('body-parser');
 
-const ObjectController = {
-    createObject,
-    deleteObject,
-    updateObject
-}
+// const ObjectController = {
+//     CreateObject,
+//     DeleteObject,
+//     UpdateObject
+// }
 
-const createObject = async (req, res) => {
+const CreateObject = async (req, res) => {
     try {
         const object = new Object({
             timeApear: req.body.timeApear,
@@ -34,7 +35,7 @@ const createObject = async (req, res) => {
     }
 }
 
-const deleteObject = async (req, res) => {
+const DeleteObject = async (req, res) => {
     try {
         const deleteObject = await Object.findByIdAndDelete(req.body.id);//req.body.id
         res.status(200).send('Delete', deleteObject,'successfully!');
@@ -45,7 +46,7 @@ const deleteObject = async (req, res) => {
     }
 }
 
-const updateObject = async (req, res) => {
+const UpdateObject = async (req, res) => {
     try {
         const updateObject = await Object.findByIdAndUpdate(req.body.id, {  
             timeApear: req.body.timeApear,
@@ -72,5 +73,19 @@ const updateObject = async (req, res) => {
     }
 }
 
-module.exports = ObjectController;
+// const FindObject = async (req, res) => {
+//     try {
+//         const object = await Object.findById(req.body.id);
+//         res.status(200).send(object);
+//     }
+//     catch (error) {
+//         console.log('Error: ', error);
+//         res.status(500).send('Error: ', error);
+//     }
+
+module.exports = {
+    CreateObject,
+    DeleteObject,
+    UpdateObject
+};
 // Path: src/models/cobotSchema.js
