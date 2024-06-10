@@ -35,6 +35,25 @@ const CreateObject = async (req, res) => {
     }
 }
 
+const GetDataObject = async (req, res) => {
+    try {
+        const object = await Object.updateOne({
+            'properties.name': req.body.name
+        }, { $set: {
+            'properties.currentLocation': {
+                x: req.body.properties.currentLocation.x,
+                y: req.body.properties.currentLocation.y,
+                z: req.body.properties.currentLocation.z
+            } 
+        } });
+        res.status(200).send(object);
+    }
+    catch (error) {
+        console.log('Error: ', error);
+        res.status(500).send('Error: ', error);
+    }
+}
+
 const DeleteObject = async (req, res) => {
     try {
         const deleteObject = await Object.findByIdAndDelete(req.body.id);//req.body.id
@@ -86,6 +105,7 @@ const UpdateObject = async (req, res) => {
 module.exports = {
     CreateObject,
     DeleteObject,
-    UpdateObject
+    UpdateObject,
+    GetDataObject
 };
 // Path: src/models/cobotSchema.js

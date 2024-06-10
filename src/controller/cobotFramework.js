@@ -1,38 +1,7 @@
 const Cobot = require('../models/cobotSchema');
 const Object = require('../models/objectSchema');
+const axios = require('axios');
 const bodyParser = require('body-parser');
-
-UpdateStatusCobot = async (req, res) => {
-    try {
-        
-    }
-    catch (error) {
-        return res.status(500).json({ message: error.message });
-    }
-};
-
-PushingObject = async (req, res) => {
-    try{
-        const object = await Object.findOne({
-            name: req.body.name
-        });
-        if(!object){
-            var coordinates = {
-                x: object.properties.currentLocation.x,
-                y: object.properties.currentLocation.y,
-                z: object.properties.currentLocation.z
-            };
-            
-            var timePushing = CaculateTimePushing(object.timeApear, object.properties.speed, object.properties.vector);
-            var updateCobot = InverseKinematicCaculate(coordinates);
-            res.status(200).send(object);
-        } 
-        else return res.status(400).json({ message: "Object not found!" });
-    }
-    catch(error){
-        return res.status(500).json({ message: error.message });
-    }
-};
 
 /*
     hàm này sẽ trả về thời điểm để cobot thực hiện hành động đẩy vật
@@ -40,7 +9,7 @@ PushingObject = async (req, res) => {
     để đơn giản thì em xin phép mặc địch mọi trường hợp là công thức như sau:
     timePushing = timeApear + 1000000;
 */
-function CaculateTimePushing(timeApear, speed, vector) {
+const CaculateTimePushing = (timeApear, speed, vector) => {
     return new Date(timeApear.getTime() + 1000000); 
 }
 
@@ -49,7 +18,7 @@ function CaculateTimePushing(timeApear, speed, vector) {
     được mô phỏng trong hàm InverseKinematicCaculate()
     hàm dưới chỉ mô phỏng đơn giản thuật toán động học ngược có thể không chính xác
 */
-function InverseKinematicCaculate(coordinates) {
+const InverseKinematicCaculate3dof = (coordinates) => {
     //
     var l1 = l2 = l3 = 20;  //mặc định chiều dài của các khớp đều bằng 20 và chân ở điểm (0,0,0)
     let x = coordinates.x;
@@ -82,27 +51,131 @@ function InverseKinematicCaculate(coordinates) {
         let theta3Deg = theta3 * 180 / Math.PI;
 
         return {
-            Joint1: theta1Deg,
-            Joint2: theta2Deg,
-            Joint3: theta3Deg
+            jointAngles1: theta1Deg,
+            jointAngles2: theta2Deg,
+            jointAngles3: theta3Deg
         };
     }
 }
 
+const CreateCobot = async (req, res) => {
+    try {
+        const cobot = new Cobot({
+            timePerform: req.body.timePerform,
+            status: {
+                jointAngles1: req.body.status.jointAngles1,
+                jointAngles2: req.body.status.jointAngles2,
+                jointAngles3: req.body.status.jointAngles3
+            }
+        });
+        await cobot.save();
+        res.status(200).send('Create cobot successfully!');
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const PushingObject = async (req, res) => {
+    try{
+        const object = await Object.findOne({
+            // _id: req.body.id,
+            'properties.name': req.body.name
+        });
+
+        if(object){
+            var coordinates = {
+                x: object.properties.currentLocation.x,
+                y: object.properties.currentLocation.y,
+                z: object.properties.currentLocation.z
+            };
+            
+            var timePushing = CaculateTimePushing(object.timeApear, object.properties.speed, object.properties.vector);
+            var getStatus = InverseKinematicCaculate3dof(coordinates);
+            /*object getStatus{
+                Joint1: theta1Deg,
+                Joint2: theta2Deg,
+                Joint3: theta3Deg
+            };*/
+            res.status(200).json({
+                message: "COBOT IS PUSHING WITH STATUS: ",
+                getStatus
+            });
+        }
+        else{
+            return res.status(400).json({ message: "Object not found!" });
+        }
+    }
+    catch(error){
+        return res.status(500).json({ message: error.message });
+    }
+};
+
+const CatchingObject = async (req, res) => {
+    try{
+        const object = await Object.findOne({
+            // _id: req.body.id,
+            'properties.name': req.body.name
+        });
+
+        if(object){
+            var coordinates = {
+                x: object.properties.currentLocation.x,
+                y: object.properties.currentLocation.y,
+                z: object.properties.currentLocation.z
+            };
+            
+            var timePushing = CaculateTimePushing(object.timeApear, object.properties.speed, object.properties.vector);
+            var getStatus = InverseKinematicCaculate3dof(coordinates);
+            /*object getStatus{
+                Joint1: theta1Deg,
+                Joint2: theta2Deg,
+                Joint3: theta3Deg
+            };*/
+            res.status(200).json({
+                message: "COBOT IS CATCHING WITH STATUS: ",
+                getStatus
+            });
+        }
+        else{
+            return res.status(400).json({ message: "Object not found!" });
+        }
+    }
+    catch(error){
+        return res.status(500).json({ message: error.message });
+    }
+};
 
 
+// const UpdateStatusCobot = async (req, res) => {
+//     try {
+//         const cobot = await Cobot.findOneAndUpdate({
+//             _id: req.body.id
+//         });
+//         if (cobot) {
+//             cobot.status.jointAngles1 = req.body.status.jointAngles1;
+//             cobot.status.jointAngles2 = req.body.status.jointAngles2;
+//             cobot.status.jointAngles3 = req.body.status.jointAngles3;
+//             await cobot.save();
+//             res.status(200).send('Update status successfully!');
+//         }
+//         else return res.status(400).json({ message: "Cobot not found!" });
+//     }
+//     catch (error) {
+//         return res.status(500).json({ message: error.message });
+//     }
+// };
 
 module.exports = {
-    UpdateStatusCobot,
+    CreateCobot,
     CaculateTimePushing,
+    InverseKinematicCaculate3dof,
     PushingObject,
-    CacualateTimeCatching,
     CatchingObject,
-    KhoanTuong,
-    HanThiec,
-    CatBetong,
-    DutAn,
+    // UpdateStatusCobot,
+    // CacualateTimeCatching,
+    // KhoanTuong,
+    // HanThiec,
+    // CatBetong,
+    // DutAn,
 //vân vân.......
-
-
 };

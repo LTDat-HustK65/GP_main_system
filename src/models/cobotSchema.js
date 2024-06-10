@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 
 const cobotSchema = new mongoose.Schema({
-    time: Date,
+    timePerform: Number,
     status:{
-        servo1: Number,
-        servo2: Number,
-        servo3: Number,
+        jointAngles1: Number,
+        jointAngles2: Number,
+        jointAngles3: Number,
     }
 });
 
