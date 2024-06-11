@@ -1,5 +1,6 @@
 const Object = require('../models/objectSchema');
 const Cobot = require('../models/cobotSchema');
+const axios = require('axios');
 const bodyParser = require('body-parser');
 
 // const ObjectController = {
@@ -10,7 +11,7 @@ const bodyParser = require('body-parser');
 
 const CreateObject = async (req, res) => {
     try {
-        const object = new Object({
+        const objects = new Object({
             timeApear: req.body.timeApear,
             properties: {
                 name: req.body.properties.name,
@@ -27,7 +28,12 @@ const CreateObject = async (req, res) => {
                 }
             }
         });
-        await object.save();
+        await objects.save();
+
+        notifyClients('object-detection', objects)
+
+
+
         res.status(200).send('Create object successfully!');
     } catch (error) {
         console.log('Error: ', error);

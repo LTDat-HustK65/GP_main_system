@@ -1,0 +1,5 @@
+var socket = io.connect('/api/duoi');
+socket.on('object-detection', function(data) {
+    console.log('Got announcement:', data.message);
+    CreateObject()
+});
